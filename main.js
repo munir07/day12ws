@@ -5,6 +5,7 @@ const fs = require('fs');
 const resources = ['public', 'images'];
 var fileList = ['mane.jpg', 'coutinho.jpg', 'firmino.jpeg', 'salah.jpeg' , 'wijnaldum.jpeg'];
 
+console.log('hello');
 const randomFile = (array) => {
     const randomNum = Math.floor(Math.random() * array.length)
     return array[randomNum];
