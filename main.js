@@ -1,8 +1,9 @@
 // Step 1 - Load libraries
 const path = require('path');
 const express = require('express');
-const fs = require('fs');
 const resources = ['public', 'images'];
+const hbs = require('express-handlebars');
+const asciify = require('asciify-image');
 
 var fileList = ['mane.jpg', 'coutinho.jpg', 'firmino.jpeg', 'salah.jpeg' , 'wijnaldum.jpeg'];
 const randomFile = (array) => {
@@ -12,22 +13,38 @@ const randomFile = (array) => {
 
 // Step 2 - Create instance of Express
 const app = express();
+app.engine('hbs', hbs());
+app.set('view engine', 'hbs');
+app.set('views', 'views');
 
 // Step 3 - Declare rules
 app.get('/image', (req, resp) => {
     resp.status(200);
+    const imageFile = randomFile(fileList);
     resp.format({
         'text/html' : () => {
-            resp.send(`<img src='/${randomFile(fileList)}'>`);
+            resp.render('image', {image: imageFile});
         },
         'image/jpg' : () => {
-            resp.sendFile(path.join(__dirname, 'images', randomFile(fileList)));
+            resp.sendFile(path.join(__dirname, 'images', imageFile));
         },
         'text/plain' : () => {
-            resp.send(`<h1>asciify ${randomFile(fileList)}</h1>`);
+            var options = {
+                fit:    'box',
+                width:  200,
+                height: 100
+            }
+            asciify(path.join(__dirname, 'images', imageFile), options, function (err, asciified) {
+                if (err) {
+                    resp.status(400);
+                    resp.send(JSON.stringify(err));
+                    return;
+                }
+                resp.send(asciified);
+            });
         },
         'application/json' : () => {
-            resp.json({filename: randomFile(fileList)});
+            resp.json({imageURL: `/${imageFile}`});
         },
         'default' : () => {
             resp.status(406);
@@ -35,6 +52,12 @@ app.get('/image', (req, resp) => {
         }
     });
 });
+
+// app.get('/play', (req, resp) => {
+//     resp.status(200);
+//     const imageFile = randomFile(fileList);
+//     resp.render('image', {image: imageFile});
+// });
 
 // app.get('/json', (req, resp) => {
 //      resp.status(200);
